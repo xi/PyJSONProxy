@@ -49,19 +49,19 @@ HTML pages, PyJSONProxy can extract information from there::
 
     ENDPOINTS = {
         'github': {
-            'host': 'https://github.com/'
+            'host': 'https://github.com/',
             'type': 'scrape_item',
             'fields': {
               'login': '.vcard-username',
               'fullname': '.vcard-fullname',
-              'email': '.vcard-details .email'
+              'email': '.vcard-details .email',
               'join-date': '.vcard-details .join-date@datetime'
             }
         },
         'repos': {
-            'host': 'https://github.com/'
+            'host': 'https://github.com/',
             'type': 'scrape_list',
-            'selector': '.repo-list-name a@href'
+            'selector': '.popular-repos a.mini-repo-list-item@href'
         }
     }
 
@@ -93,7 +93,7 @@ description to both endpoints and fields::
 
     ENDPOINTS = {
         'github': {
-            'host': 'https://github.com/'
+            'host': 'https://github.com/',
             'type': 'scrape_item',
             'doc': 'Access data about GitHub users',
             'fields': {
@@ -104,7 +104,7 @@ description to both endpoints and fields::
             },
             'fields_doc': {
               'login': 'github username',
-              'fullname': 'the user's full name',
+              'fullname': 'the user\'s full name',
               'join-date': 'date when the user joined github in ISO-xx format'
             }
         }
