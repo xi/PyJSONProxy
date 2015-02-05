@@ -46,6 +46,7 @@ def main():
 	app = Flask(__name__)
 
 	# load config
+	app.config[ENDPOINTS] = {}
 	config_files = [
 		os.path.expanduser('~/.config/pyjsonproxy.cfg'),
 		os.path.abspath('.pyjsonproxy.cfg'),
