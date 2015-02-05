@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="UTF-8">
+		<title>jsonproxy</title>
+	</head>
+	<body>
+		{% for endpoint in endpoints %}
+		<section>
+			<h2>{{ endpoint.title }} ({{ endpoint.type }})</h2>
+			<p>{{ endpoint.doc }}</p>
+			{% if endpoint.fields %}
+			<table>
+				<thead>
+					<tr>
+						<th>name</th>
+						<th>description</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for name, doc in endpoint.fields %}
+					<tr>
+						<td>{{ name }}</td>
+						<td>{{ doc }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% endif %}
+		</section>
+		{% endfor %}
+	</body>
+</html>

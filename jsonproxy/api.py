@@ -11,6 +11,7 @@ from flask import current_app
 from flask import abort
 from flask import jsonify
 from flask import make_response
+from flask import render_template
 
 from bs4 import BeautifulSoup
 
@@ -29,9 +30,44 @@ def get_attribute(html, selector):
 	return get_attribute_list(html, selector)[0]
 
 
+def _doc(endpoint):
+	config = current_app.config['ENDPOINTS'][endpoint]
+	url_doc = 'url of the scraped page'
+
+	data = {
+		'title': endpoint,
+		'doc': config.get('doc', ''),
+		'type': config.get('type', 'proxy'),
+		'fields': [],
+	}
+
+	if config['type'] == 'scrape_item':
+		fields_doc = config.get('fields_doc', {})
+		data['fields'].append(('url', url_doc))
+		for key in config['fields']:
+			doc = fields_doc.get(key, '')
+			data['fields'].append((key, doc))
+
+	if config['type'] == 'scrape_list':
+		data['fields'] = [
+			('url', url_doc),
+			('l', 'list of results'),
+		]
+
+	return data
+
+
 @api.route('/', methods=['GET'])
 def main():
-	return jsonify()
+	data = [_doc(endpoint) for endpoint in current_app.config['ENDPOINTS']]
+	return render_template('index.html', endpoints=data)
+
+
+@api.route('/<endpoint>/', methods=['GET'])
+def doc(endpoint):
+	if endpoint not in current_app.config['ENDPOINTS']:
+		abort(404)
+	return render_template('index.html', endpoints=[_doc(endpoint)])
 
 
 @api.route('/<endpoint>/<path:path>', methods=['GET'])
