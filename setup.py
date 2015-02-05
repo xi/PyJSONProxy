@@ -8,7 +8,7 @@ setup(
     version='0.0.0',
     description='Generic proxy to allow access to non-jsonp APIs',
     long_description=open('README.rst').read(),
-    url='https://github.com/xi/jsonproxy',
+    url='https://github.com/xi/PyJSONProxy',
     author='Tobias Bengfort',
     author_email='tobias.bengfort@posteo.de',
     packages=['jsonproxy'],
