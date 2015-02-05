@@ -12,12 +12,13 @@ from flask import abort
 from flask import jsonify
 from flask import make_response
 from flask import render_template
-
 from bs4 import BeautifulSoup
+import cachetools
 
 api = Blueprint('api', __name__, static_folder='static')
 
 
+@cachetools.ttl_cache()
 def urlopen(url, parse=False):
 	try:
 		current_app.logger.info('fetching %s' % url)
