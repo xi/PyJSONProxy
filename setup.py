@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'flask',
         'beautifulsoup4',
+        'cachetools',
     ],
     entry_points={'console_scripts': [
         'jsonproxy=jsonproxy:main',
