@@ -46,6 +46,7 @@ HTML pages, PyJSONProxy can extract information from there::
     }
 
 ::
+
     ENDPOINTS = {
         'github': {
             'host': 'https://github.com/'
