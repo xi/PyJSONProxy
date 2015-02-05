@@ -2,21 +2,14 @@ from __future__ import absolute_import
 
 import os
 import sys
+import argparse
 
 from flask import Flask
-from flask.helpers import find_package
 
 from .api import api
 
 TYPES = ['proxy', 'scrape_item', 'scrape_list']
 ENDPOINTS = 'ENDPOINTS'
-
-
-def etc_path(app):  # pragma: no cover
-	prefix, package_path = find_package(app.import_name)
-	if prefix is None:
-		return os.path.join(package_path, 'etc')
-	return os.path.join(prefix, 'etc')
 
 
 def check_config(config):
@@ -42,11 +35,16 @@ def check_config(config):
 	return errors
 
 
-def create_app(name, settings_override=None):  # pragma: no cover
-	app = Flask(name)
+def main():
+	parser = argparse.ArgumentParser(description='simple proxy and scraper')
+	parser.add_argument('config')
+	parser.add_argument('-d', '--debug', action='store_true')
+	parser.add_argument('-p', '--port', type=int)
+	parser.add_argument('-H', '--host')
+	args = parser.parse_args()
 
-	app.config.from_pyfile(os.path.join(etc_path(app), 'settings.cfg'))
-	app.config.from_object(settings_override)
+	app = Flask(__name__)
+	app.config.from_pyfile(os.path.abspath(args.config))
 
 	errors = check_config(app.config)
 	if errors:
@@ -55,13 +53,7 @@ def create_app(name, settings_override=None):  # pragma: no cover
 		sys.exit(1)
 
 	app.register_blueprint(api)
-
-	return app
-
-
-def main():
-	app = create_app(__name__)
-	app.run()
+	app.run(host=args.host, port=args.port, debug=args.debug)
 
 
 if __name__ == '__main__':
