@@ -41,14 +41,14 @@ def _doc(endpoint):
 		'fields': [],
 	}
 
-	if config['type'] == 'scrape_item':
+	if data['type'] == 'scrape_item':
 		fields_doc = config.get('fields_doc', {})
 		data['fields'].append(('url', url_doc))
 		for key in config['fields']:
 			doc = fields_doc.get(key, '')
 			data['fields'].append((key, doc))
 
-	if config['type'] == 'scrape_list':
+	if data['type'] == 'scrape_list':
 		data['fields'] = [
 			('url', url_doc),
 			('l', 'list of results'),
@@ -88,7 +88,9 @@ def proxy(endpoint, path):
 	code = original.getcode()
 	headers = original.headers.items()
 
-	if config['type'] == 'scrape_item':
+	type = config.get('type', 'proxy')
+
+	if type == 'scrape_item':
 		html = BeautifulSoup(body)
 		data = {
 			'url': url
@@ -96,7 +98,7 @@ def proxy(endpoint, path):
 		for key, selector in config['fields'].items():
 			data[key] = get_attribute(html, selector)
 		response = jsonify(data)
-	elif config['type'] == 'scrape_list':
+	elif type == 'scrape_list':
 		html = BeautifulSoup(body)
 		response = jsonify({
 			'url': url,
