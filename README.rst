@@ -16,8 +16,10 @@ implements the third variant. So you can do something like this::
 
 With a configuration like this::
 
-    ENDPOINTS['github'] = {
-        'host': 'https://api.github.com/users/'
+    ENDPOINTS = {
+        'github': {
+            'host': 'https://api.github.com/users/'
+        }
     }
 
 
@@ -45,20 +47,22 @@ HTML pages, PyJSONProxy can extract information from there::
 
 ::
 
-    ENDPOINTS['github'] = {
-        'host': 'https://github.com/',
-        'type': 'scrape_item',
-        'fields': {
-          'login': '.vcard-username',
-          'fullname': '.vcard-fullname',
-          'email': '.vcard-details .email',
-          'join-date': '.vcard-details .join-date@datetime'
+    ENDPOINTS = {
+        'github': {
+            'host': 'https://github.com/',
+            'type': 'scrape_item',
+            'fields': {
+              'login': '.vcard-username',
+              'fullname': '.vcard-fullname',
+              'email': '.vcard-details .email',
+              'join-date': '.vcard-details .join-date@datetime'
+            }
+        },
+        'repos': {
+            'host': 'https://github.com/',
+            'type': 'scrape_list',
+            'selector': '.popular-repos a.mini-repo-list-item@href'
         }
-    }
-    ENDPOINTS['repos'] = {
-        'host': 'https://github.com/',
-        'type': 'scrape_list',
-        'selector': '.popular-repos a.mini-repo-list-item@href'
     }
 
 There a two options here: ``scrape_item`` and ``scrape_list``. The first
@@ -87,20 +91,22 @@ Some simple documentation is auomatically generated and available under
 endpoint). To provide some input for this documentation, you can add a
 description to both endpoints and fields::
 
-    ENDPOINTS['github'] = {
-        'host': 'https://github.com/',
-        'type': 'scrape_item',
-        'doc': 'Access data about GitHub users',
-        'fields': {
-          'login': '.vcard-username',
-          'fullname': '.vcard-fullname',
-          'email': '.vcard-details .email'
-          'join-date': '.vcard-details .join-date@datetime'
-        },
-        'fields_doc': {
-          'login': 'github username',
-          'fullname': 'the user\'s full name',
-          'join-date': 'date when the user joined github in ISO-xx format'
+    ENDPOINTS = {
+        'github': {
+            'host': 'https://github.com/',
+            'type': 'scrape_item',
+            'doc': 'Access data about GitHub users',
+            'fields': {
+              'login': '.vcard-username',
+              'fullname': '.vcard-fullname',
+              'email': '.vcard-details .email'
+              'join-date': '.vcard-details .join-date@datetime'
+            },
+            'fields_doc': {
+              'login': 'github username',
+              'fullname': 'the user\'s full name',
+              'join-date': 'date when the user joined github in ISO-xx format'
+            }
         }
     }
 
