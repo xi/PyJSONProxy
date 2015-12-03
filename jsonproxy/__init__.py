@@ -45,6 +45,7 @@ def main():
 
 	app = Flask(__name__)
 	app.config.from_pyfile(os.path.abspath(args.config))
+	app.debug = args.debug
 
 	errors = check_config(app.config)
 	if errors:
@@ -53,7 +54,7 @@ def main():
 		sys.exit(1)
 
 	app.register_blueprint(api)
-	app.run(host=args.host, port=args.port, debug=args.debug)
+	app.run(host=args.host, port=args.port)
 
 
 if __name__ == '__main__':
