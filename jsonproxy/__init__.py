@@ -8,7 +8,6 @@ from flask import Flask
 
 from .api import api
 
-TYPES = ['proxy', 'scrape']
 ENDPOINTS = 'ENDPOINTS'
 
 
@@ -31,14 +30,9 @@ def check_config(config):
 		errors.append('No endpoints configured.')
 	else:
 		for key, data in config[ENDPOINTS].items():
-			_type = data.get('type', 'proxy')
-			if _type not in TYPES:
-				errors.append('Unknown endpoint type %s for endpoint %s. '
-					'Choose one of %s.' % (_type, key, ', '.join(TYPES)))
-			elif _type == 'scrape':
-				if 'fields' not in data or len(data['fields']) == 0:
-					errors.append('No fields configured for endpoint %s of type %s.' %
-						(key, _type))
+			if 'fields' in data:
+				if len(data['fields']) == 0:
+					errors.append('No fields configured for endpoint %s.' % key)
 				else:
 					errors += list(check_fields_config(data['fields'], key))
 

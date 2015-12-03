@@ -48,7 +48,6 @@ HTML pages, PyJSONProxy can extract information from there::
     ENDPOINTS = {
         'github': {
             'host': 'https://github.com/',
-            'type': 'scrape',
             'fields': {
                 'login': '.vcard-username',
                 'fullname': '.vcard-fullname',
@@ -93,7 +92,6 @@ description to both endpoints and fields::
     ENDPOINTS = {
         'github': {
             'host': 'https://github.com/',
-            'type': 'scrape',
             'doc': 'Access data about GitHub users',
             'fields': {
               'login': '.vcard-username',

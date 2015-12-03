@@ -88,9 +88,8 @@ def main(endpoint, path):
 		abort(404)
 
 	url = request.url.replace(request.host_url + endpoint + '/', config['host'])
-	_type = config.get('type', 'proxy')
 
-	if _type == 'scrape':
+	if 'fields' in config:
 		response = scrape(url, config)
 	else:
 		response = proxy(url, config)
@@ -115,7 +114,6 @@ def _doc(endpoint):
 	data = {
 		'title': endpoint,
 		'doc': config.get('doc', ''),
-		'type': config.get('type', 'proxy'),
 		'fields': list(_fields_doc(config)),
 	}
 
