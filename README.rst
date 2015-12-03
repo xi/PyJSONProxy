@@ -34,15 +34,13 @@ HTML pages, PyJSONProxy can extract information from there::
     {
       "url": "https://github.com/xi/",
       "login": "xi",
-      ...
-    }
-    $ curl http://localhost:5000/repos/xi/
-    {
-      "url": "https://github.com/xi/",
-      "l": [
-        "/xi/pyjsonproxy",
+      "activity": [
         ...
-      ]
+      ],
+      "repos": [{
+        ...
+      }]
+      ...
     }
 
 ::
@@ -50,25 +48,26 @@ HTML pages, PyJSONProxy can extract information from there::
     ENDPOINTS = {
         'github': {
             'host': 'https://github.com/',
-            'type': 'scrape_item',
+            'type': 'scrape',
             'fields': {
-              'login': '.vcard-username',
-              'fullname': '.vcard-fullname',
-              'email': '.vcard-details .email',
-              'join-date': '.vcard-details .join-date@datetime'
+                'login': '.vcard-username',
+                'fullname': '.vcard-fullname',
+                'email': '.vcard-details .email',
+                'join-date': '.vcard-details .join-date@datetime',
+                'activity': {
+                    'selector': '.contribution-activity-listing ul a'
+                },
+                'repos': {
+                    'selector': '.popular-repos a.mini-repo-list-item',
+                    'fields': {
+                        'url': '@href',
+                        'name': '.repo',
+                        'description': '.repo-description'
+                    }
+                }
             }
-        },
-        'repos': {
-            'host': 'https://github.com/',
-            'type': 'scrape_list',
-            'selector': '.popular-repos a.mini-repo-list-item@href'
         }
     }
-
-There a two options here: ``scrape_item`` and ``scrape_list``. The first
-one will take a list of fields and selectors and return only the first
-match for each selector.The latter one will only take one selector and
-return every match for this selector.
 
 Selectors are generally CSS-selectors with the additional option to
 select an attribute by appending an ``@`` and the attribute name. If no
@@ -86,7 +85,7 @@ all responses.
 Documentation
 =============
 
-Some simple documentation is auomatically generated and available under
+Some simple documentation is automatically generated and available under
 ``/`` (for all endpoints) or ``/{endpoint}/`` (for an individual
 endpoint). To provide some input for this documentation, you can add a
 description to both endpoints and fields::
@@ -94,7 +93,7 @@ description to both endpoints and fields::
     ENDPOINTS = {
         'github': {
             'host': 'https://github.com/',
-            'type': 'scrape_item',
+            'type': 'scrape',
             'doc': 'Access data about GitHub users',
             'fields': {
               'login': '.vcard-username',

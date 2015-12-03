@@ -10,22 +10,20 @@
 			<h2>{{ endpoint.title }} ({{ endpoint.type }})</h2>
 			<p>{{ endpoint.doc }}</p>
 			{% if endpoint.fields %}
-			<table>
-				<thead>
-					<tr>
-						<th>name</th>
-						<th>description</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for name, doc in endpoint.fields %}
-					<tr>
-						<td>{{ name }}</td>
-						<td>{{ doc }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+			<dl>
+				{% for name, doc, fields in endpoint.fields recursive %}
+				<dt>{{ name }}</dt>
+				<dd>
+					{{ doc }}
+
+					{% if fields %}
+					<dl>
+						{{ loop(fields) }}
+					</dl>
+					{% endif %}
+				</dd>
+				{% endfor %}
+			</dl>
 			{% endif %}
 		</section>
 		{% endfor %}

@@ -8,8 +8,20 @@ from flask import Flask
 
 from .api import api
 
-TYPES = ['proxy', 'scrape_item', 'scrape_list']
+TYPES = ['proxy', 'scrape']
 ENDPOINTS = 'ENDPOINTS'
+
+
+def check_fields_config(fields, endpoint, field=''):
+	for key, value in fields.items():
+		full_key = field + '.' + key if field else key
+		if isinstance(value, dict):
+			if 'selector' not in value:
+				yield ('No selector configured for field %s in endpoint %s.' %
+					(full_key, endpoint))
+			if 'fields' in value:
+				for error in check_fields_config(value['fields'], endpoint, full_key):
+					yield error
 
 
 def check_config(config):
@@ -23,14 +35,12 @@ def check_config(config):
 			if _type not in TYPES:
 				errors.append('Unknown endpoint type %s for endpoint %s. '
 					'Choose one of %s.' % (_type, key, ', '.join(TYPES)))
-			elif _type == 'scrape_item':
+			elif _type == 'scrape':
 				if 'fields' not in data or len(data['fields']) == 0:
 					errors.append('No fields configured for endpoint %s of type %s.' %
 						(key, _type))
-			elif _type == 'scrape_list':
-				if 'selector' not in data:
-					errors.append('Endpoint %s of type %s is missing a selector.' %
-						(key, _type))
+				else:
+					errors += list(check_fields_config(data['fields'], key))
 
 	return errors
 

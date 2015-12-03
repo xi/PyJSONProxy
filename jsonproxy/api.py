@@ -37,11 +37,17 @@ def urlopen(url, parse=False):
 
 
 def get_attribute_list(html, selector):
-	if '@' in selector:
-		s, attr = selector.rsplit('@', 1)
-		return [element[attr] for element in html.select(s)]
+	s = selector.rsplit('@', 1)[0]
+	if s:
+		elements = html.select(s)
 	else:
-		return [element.text.strip() for element in html.select(selector)]
+		elements = [html]
+
+	if '@' in selector:
+		attr = selector.rsplit('@', 1)[1]
+		return [element[attr] for element in elements]
+	else:
+		return [element.text.strip() for element in elements]
 
 
 def get_attribute(html, selector):
@@ -50,22 +56,24 @@ def get_attribute(html, selector):
 		return l[0]
 
 
-def scrape_item(url, config):
-	tree = urlopen(url, parse=True)
-	data = {
-		'url': url
-	}
-	for key, selector in config['fields'].items():
-		data[key] = get_attribute(tree, selector)
+def get_fields(html, config):
+	data = {}
+	for key, value in config['fields'].items():
+		if isinstance(value, str):
+			data[key] = get_attribute(html, value)
+		elif 'fields' in value:
+			elements = html.select(value['selector'])
+			data[key] = [get_fields(e, value) for e in elements]
+		else:
+			data[key] = get_attribute_list(html, value['selector'])
+	return data
+
+
+def scrape(url, config):
+	html = urlopen(url, parse=True)
+	data = get_fields(html, config)
+	data['url'] = url
 	return jsonify(data)
-
-
-def scrape_list(url, config):
-	tree = urlopen(url, parse=True)
-	return jsonify({
-		'url': url,
-		'l': get_attribute_list(tree, config['selector'])
-	})
 
 
 def proxy(url, config):
@@ -82,10 +90,8 @@ def main(endpoint, path):
 	url = request.url.replace(request.host_url + endpoint + '/', config['host'])
 	_type = config.get('type', 'proxy')
 
-	if _type == 'scrape_item':
-		response = scrape_item(url, config)
-	elif _type == 'scrape_list':
-		response = scrape_list(url, config)
+	if _type == 'scrape':
+		response = scrape(url, config)
 	else:
 		response = proxy(url, config)
 
@@ -95,29 +101,25 @@ def main(endpoint, path):
 	return response
 
 
+def _fields_doc(config):
+	if isinstance(config, dict):
+		fields = config.get('fields', {})
+		doc = config.get('fields_doc', {})
+		for key in fields:
+			yield key, doc.get(key, ''), list(_fields_doc(fields[key]))
+
+
 def _doc(endpoint):
 	config = current_app.config['ENDPOINTS'][endpoint]
-	url_doc = 'url of the scraped page'
 
 	data = {
 		'title': endpoint,
 		'doc': config.get('doc', ''),
 		'type': config.get('type', 'proxy'),
-		'fields': [],
+		'fields': list(_fields_doc(config)),
 	}
 
-	if data['type'] == 'scrape_item':
-		fields_doc = config.get('fields_doc', {})
-		data['fields'].append(('url', url_doc))
-		for key in config['fields']:
-			doc = fields_doc.get(key, '')
-			data['fields'].append((key, doc))
-
-	if data['type'] == 'scrape_list':
-		data['fields'] = [
-			('url', url_doc),
-			('l', 'list of results'),
-		]
+	data['fields'].append(('url', 'url of the scraped page', []))
 
 	return data
 
