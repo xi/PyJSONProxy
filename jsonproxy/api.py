@@ -45,7 +45,9 @@ def get_attribute_list(html, selector):
 
 
 def get_attribute(html, selector):
-	return get_attribute_list(html, selector)[0]
+	l = get_attribute_list(html, selector)
+	if len(l) > 0:
+		return l[0]
 
 
 def scrape_item(url, config):
