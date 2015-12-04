@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='jsonproxy',
-    version='0.0.1',
+    version='0.1.0',
     description='Generic proxy to allow access to non-jsonp APIs',
     long_description=open('README.rst').read(),
     url='https://github.com/xi/PyJSONProxy',
