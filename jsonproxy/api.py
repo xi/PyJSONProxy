@@ -73,6 +73,8 @@ def scrape(url, config):
 	html = urlopen(url, parse=True)
 	data = get_fields(html, config)
 	data['url'] = url
+	if 'post' in config:
+		data = config['post'](data)
 	return jsonify(data)
 
 
