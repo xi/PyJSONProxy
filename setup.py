@@ -27,7 +27,7 @@ setup(
         'Intended Audience :: Information Technology',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'License :: OSI Approved :: GNU Affero General Public License v3 '\
+        'License :: OSI Approved :: GNU Affero General Public License v3 '
             'or later (AGPLv3+)',
         'Topic :: Internet :: Proxy Servers',
     ])
