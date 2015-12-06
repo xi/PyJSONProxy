@@ -1,23 +1,16 @@
-from __future__ import absolute_import
-
+import asyncio
 import os
 import sys
 
-try:
-	from urllib.request import urlopen as _urlopen
-	from urllib.error import HTTPError
-except ImportError:
-	from urllib2 import urlopen as _urlopen
-	from urllib2 import HTTPError
+import aiohttp
+from aiohttp import web
+from bs4 import BeautifulSoup
 
-from flask import abort
-from flask import current_app
-from flask import Flask
-from flask import jsonify
-from flask import make_response
-from flask import render_template
-from flask import request
-import cachetools
+from .web import Application
+from .web import jsonify
+from .web import render_template
+from .web import make_response
+from .web import abort
 
 from .lib import check_config
 from .lib import _doc
@@ -25,66 +18,85 @@ from .lib import ENDPOINTS
 from .lib import parse_args
 from .lib import scrape
 
-app = Flask(__name__)
+app = Application(__name__)
 
 
 def get_config(endpoint):
 	try:
-		return current_app.config[ENDPOINTS][endpoint]
+		return app.config[ENDPOINTS][endpoint]
 	except KeyError:
 		abort(404)
 
 
-@cachetools.ttl_cache()
-def urlopen(url):
-	try:
-		current_app.logger.info('fetching %s' % url)
-		original = _urlopen(url)
+def async_cache(maxsize=128):
+	cache = {}
 
-		body = original.read()
-		code = original.getcode()
-		headers = original.headers.items()
+	def decorator(fn):
+		def wrapper(*args):
+			key = ':'.join(args)
+			if key not in cache:
+				if len(cache) >= maxsize:
+					del cache[cache.keys().next()]
+				cache[key] = yield from fn(*args)
+			return cache[key]
+		return wrapper
+	return decorator
 
-		return body, code, headers
-	except HTTPError as error:
-		abort(error.code)
 
-
-@app.route('/<endpoint>/<path:path>', methods=['GET'])
-def handle(endpoint, path):
-	config = get_config(endpoint)
-	url = request.url.replace(request.host_url + endpoint + '/', config['host'])
-
-	body, code, headers = urlopen(url)
-
-	if 'fields' in config:
-		response = jsonify(scrape(url, body, config))
+@async_cache()
+def _request(method, url):
+	app.logger.info(method, url)
+	print(method, url)
+	response = yield from aiohttp.request(method, url)
+	if response.status != 200:
+		abort(response.status)
 	else:
-		response = make_response(body, code)
+		return response
 
-	if current_app.config.get('ALLOW_CORS', False):
+
+@app.route('/{endpoint}/{path:.+}', methods=['GET', 'HEAD', 'OPTIONS'])
+@asyncio.coroutine
+def handle(request):
+	endpoint = request.match_info['endpoint']
+
+	config = get_config(endpoint)
+	url = config['host'] + request.match_info['path']
+	if request.query_string:
+		url += '?' + request.query_string
+
+	remote = yield from _request(request.method, url)
+	body = yield from remote.read()
+
+	if 'fields' in config and request.method == 'GET':
+		response = jsonify(scrape(url, body, config), status=remote.status)
+	else:
+		response = make_response(body, status=remote.status)
+
+	if app.config.get('ALLOW_CORS', False):
 		response.headers['Access-Control-Allow-Origin'] = '*'
 
 	return response
 
 
-@app.route('/', methods=['GET'])
-def index():
-	config = current_app.config[ENDPOINTS]
+@app.route('/')
+def index(request):
+	config = app.config[ENDPOINTS]
 	data = [_doc(config[endpoint], endpoint) for endpoint in config]
 	return render_template('index.html', endpoints=data)
 
 
-@app.route('/<endpoint>/', methods=['GET'])
-def doc(endpoint):
-	config = get_config(endpoint)
-	return render_template('index.html', endpoints=[_doc(config, endpoint)])
+@app.route('/{endpoint}/')
+def doc(request):
+	endpoint = request.match_info['endpoint']
+	config = app.get_config(endpoint)
+	data = [_doc(config, endpoint)]
+	return render_template('index.html', endpoints=data)
 
 
 def main():
 	args = parse_args()
 
-	app.config.from_pyfile(os.path.abspath(args.config))
+	app.config_from_file(os.path.abspath(args.config))
 	app.debug = args.debug
 
 	errors = check_config(app.config)
