@@ -43,8 +43,7 @@ def async_cache(maxsize=128):
 
 @async_cache()
 def _request(method, url):
-	app.logger.info(method, url)
-	print(method, url)
+	app.logger.info('{}:{}'.format(method, url))
 	response = yield from aiohttp.request(method, url)
 	if response.status != 200:
 		abort(response.status)

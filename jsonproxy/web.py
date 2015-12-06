@@ -52,9 +52,16 @@ class Application:
 		self.name = name
 		self.loop = asyncio.get_event_loop()
 		self.app = web.Application(loop=self.loop)
-		self.logger = logging
 		self.config = {}
-		self.debug = False  # NOTE: does not do anything yet
+		self.debug = False
+
+		self.logger = logging.getLogger(self.name)
+		self.logger.setLevel(logging.INFO)
+
+		consoleHandler = logging.StreamHandler()
+		formatter = logging.Formatter('%(asctime)s - %(message)s')
+		consoleHandler.setFormatter(formatter)
+		self.logger.addHandler(consoleHandler)
 
 	def config_from_file(self, path):
 		with open(path) as fh:
@@ -76,6 +83,8 @@ class Application:
 		return decorator
 
 	def run(self, host='localhost', port=5000):
+		if self.debug:
+			self.logger.setLevel(logging.DEBUG)
 		server = self.loop.create_server(self.app.make_handler(), host, port)
 		self.loop.run_until_complete(server)
 		self.logger.info("Server started at http://{}:{}".format(host, port))
