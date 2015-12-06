@@ -3,8 +3,6 @@ import os
 import sys
 
 import aiohttp
-from aiohttp import web
-from bs4 import BeautifulSoup
 
 from .web import Application
 from .web import jsonify
