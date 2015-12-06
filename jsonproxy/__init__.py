@@ -85,7 +85,7 @@ def index(request):
 @app.route('/{endpoint}/')
 def doc(request):
 	endpoint = request.match_info['endpoint']
-	config = app.get_config(endpoint)
+	config = get_config(endpoint)
 	data = [_doc(config, endpoint)]
 	return render_template('index.html', endpoints=data)
 

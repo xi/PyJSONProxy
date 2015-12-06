@@ -70,7 +70,10 @@ class Application:
 	def add_route(self, path, fn, methods=('GET',)):
 		@asyncio.coroutine
 		def wrapped(*args, **kwargs):
-			data = yield from asyncio.async(fn(*args, **kwargs))
+			if asyncio.iscoroutinefunction(fn):
+				data = yield from fn(*args, **kwargs)
+			else:
+				data = fn(*args, **kwargs)
 			return make_response(data)
 
 		for method in methods:
