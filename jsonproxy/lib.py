@@ -1,3 +1,12 @@
+import argparse
+
+from bs4 import BeautifulSoup
+
+try:
+	from functools import lfu_cache
+except ImportError:
+	from cachetools import lfu_cache
+
 ENDPOINTS = 'ENDPOINTS'
 
 
@@ -31,6 +40,20 @@ def get_fields(html, config):
 			data[key] = [get_fields(e, value) for e in elements]
 		else:
 			data[key] = get_attribute_list(html, value['selector'])
+	return data
+
+
+@lfu_cache()
+def parse_html(body):
+	return BeautifulSoup(body)
+
+
+def scrape(url, body, config):
+	html = parse_html(body)
+	data = get_fields(html, config)
+	data['url'] = url
+	if 'post' in config:
+		data = config['post'](data)
 	return data
 
 

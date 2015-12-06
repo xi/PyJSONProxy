@@ -14,12 +14,11 @@ from flask import abort
 from flask import jsonify
 from flask import make_response
 from flask import render_template
-from bs4 import BeautifulSoup
 import cachetools
 
-from .lib import get_fields
 from .lib import _doc
 from .lib import ENDPOINTS
+from .lib import scrape
 
 api = Blueprint('api', __name__, static_folder='static')
 
@@ -32,7 +31,7 @@ def get_config(endpoint):
 
 
 @cachetools.ttl_cache()
-def urlopen(url, parse=False):
+def urlopen(url):
 	try:
 		current_app.logger.info('fetching %s' % url)
 		original = _urlopen(url)
@@ -41,25 +40,9 @@ def urlopen(url, parse=False):
 		code = original.getcode()
 		headers = original.headers.items()
 
-		if parse:
-			return BeautifulSoup(body)
-		else:
-			return body, code, headers
+		return body, code, headers
 	except HTTPError as error:
 		abort(error.code)
-
-
-def scrape(url, config):
-	html = urlopen(url, parse=True)
-	data = get_fields(html, config)
-	data['url'] = url
-	if 'post' in config:
-		data = config['post'](data)
-	return jsonify(data)
-
-
-def proxy(url, config):
-	return make_response(*urlopen(url))
 
 
 @api.route('/<endpoint>/<path:path>', methods=['GET'])
@@ -67,10 +50,15 @@ def main(endpoint, path):
 	config = get_config(endpoint)
 	url = request.url.replace(request.host_url + endpoint + '/', config['host'])
 
+	body, code, headers = urlopen(url)
+
 	if 'fields' in config:
-		response = scrape(url, config)
+		if code == 200:
+			response = jsonify(scrape(url, body, config))
+		else:
+			abort(code)
 	else:
-		response = proxy(url, config)
+		response = make_response(body, code)
 
 	if current_app.config.get('ALLOW_CORS', False):
 		response.headers['Access-Control-Allow-Origin'] = '*'
