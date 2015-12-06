@@ -80,3 +80,12 @@ def check_config(config):
 					errors += list(check_fields_config(data['fields'], key))
 
 	return errors
+
+
+def parse_args():
+	parser = argparse.ArgumentParser(description='simple proxy and scraper')
+	parser.add_argument('config')
+	parser.add_argument('-d', '--debug', action='store_true')
+	parser.add_argument('-p', '--port', type=int, default=5000)
+	parser.add_argument('-H', '--host', default='localhost')
+	return parser.parse_args()
