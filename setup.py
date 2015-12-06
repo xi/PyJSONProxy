@@ -13,9 +13,9 @@ setup(
     author_email='tobias.bengfort@posteo.de',
     packages=['jsonproxy'],
     install_requires=[
-        'flask',
+        'aiohttp',
         'beautifulsoup4',
-        'cachetools',
+        'jinja2',
     ],
     entry_points={'console_scripts': [
         'jsonproxy=jsonproxy:main',
@@ -26,7 +26,7 @@ setup(
         'Environment :: Console',
         'Intended Audience :: Information Technology',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.3',
         'License :: OSI Approved :: GNU Affero General Public License v3 '
             'or later (AGPLv3+)',
         'Topic :: Internet :: Proxy Servers',
