@@ -3,9 +3,9 @@ import argparse
 from bs4 import BeautifulSoup
 
 try:
-	from functools import lfu_cache
+	from functools import lru_cache
 except ImportError:
-	from cachetools import lfu_cache
+	from cachetools import lru_cache
 
 ENDPOINTS = 'ENDPOINTS'
 
@@ -43,7 +43,7 @@ def get_fields(html, config):
 	return data
 
 
-@lfu_cache()
+@lru_cache()
 def parse_html(body):
 	return BeautifulSoup(body)
 
