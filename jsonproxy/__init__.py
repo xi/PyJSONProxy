@@ -4,11 +4,10 @@ import sys
 
 import aiohttp
 
-from .web import Application
-from .web import jsonify
-from .web import render_template
-from .web import make_response
-from .web import abort
+from fakes import Fakes
+from fakes import jsonify
+from fakes import make_response
+from fakes import abort
 
 from .lib import check_config
 from .lib import _doc
@@ -16,7 +15,7 @@ from .lib import ENDPOINTS
 from .lib import parse_args
 from .lib import scrape
 
-app = Application(__name__)
+app = Fakes(__name__)
 
 
 def get_config(endpoint):
@@ -67,7 +66,7 @@ def handle(request):
 	if 'fields' in config and request.method == 'GET':
 		response = jsonify(scrape(url, body, config), status=remote.status)
 	else:
-		response = make_response(body, status=remote.status)
+		response = make_response((body, remote.status, []))
 
 	if app.config.get('ALLOW_CORS', False):
 		response.headers['Access-Control-Allow-Origin'] = '*'
@@ -79,7 +78,7 @@ def handle(request):
 def index(request):
 	config = app.config[ENDPOINTS]
 	data = [_doc(config[endpoint], endpoint) for endpoint in config]
-	return render_template('index.html', endpoints=data)
+	return app.render_template('index.html', endpoints=data)
 
 
 @app.route('/{endpoint}/')
@@ -87,7 +86,7 @@ def doc(request):
 	endpoint = request.match_info['endpoint']
 	config = get_config(endpoint)
 	data = [_doc(config, endpoint)]
-	return render_template('index.html', endpoints=data)
+	return app.render_template('index.html', endpoints=data)
 
 
 def main():

@@ -13,9 +13,8 @@ setup(
     author_email='tobias.bengfort@posteo.de',
     packages=['jsonproxy'],
     install_requires=[
-        'aiohttp',
+        'Fakes',
         'beautifulsoup4',
-        'jinja2',
     ],
     entry_points={'console_scripts': [
         'jsonproxy=jsonproxy:main',
