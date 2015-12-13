@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.0.1 (2015-12-06)
+------------------
+
+- some small fixes
+- a larger part has been moved to a separate project:
+  `Fakes <https://github.com/xi/fakes>`_
+
+
 1.0.0 (2015-12-06)
 ------------------
 
