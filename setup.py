@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 
+import os
+import re
 from setuptools import setup
+
+DIRNAME = os.path.abspath(os.path.dirname(__file__))
+rel = lambda *parts: os.path.abspath(os.path.join(DIRNAME, *parts))
+
+README = open(rel('README.rst')).read()
 
 
 setup(
     name='jsonproxy',
     version='1.0.1',
     description='Generic proxy to allow access to non-jsonp APIs',
-    long_description=open('README.rst').read(),
+    long_description=README,
     url='https://github.com/xi/PyJSONProxy',
     author='Tobias Bengfort',
     author_email='tobias.bengfort@posteo.de',
