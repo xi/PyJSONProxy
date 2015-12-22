@@ -12,7 +12,7 @@ README = open(rel('README.rst')).read()
 
 setup(
     name='jsonproxy',
-    version='1.0.1',
+    version='1.0.2',
     description='Generic proxy to allow access to non-jsonp APIs',
     long_description=README,
     url='https://github.com/xi/PyJSONProxy',
