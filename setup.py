@@ -19,6 +19,7 @@ setup(
     author='Tobias Bengfort',
     author_email='tobias.bengfort@posteo.de',
     packages=['jsonproxy'],
+    include_package_data=True,
     install_requires=[
         'Fakes',
         'beautifulsoup4',
