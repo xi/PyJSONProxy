@@ -1,4 +1,3 @@
-import asyncio
 import os
 import sys
 
@@ -29,30 +28,31 @@ def async_cache(maxsize=128):
 	cache = {}
 
 	def decorator(fn):
-		def wrapper(*args):
+		async def wrapper(*args):
 			key = ':'.join(args)
 			if key not in cache:
 				if len(cache) >= maxsize:
 					del cache[cache.keys().next()]
-				cache[key] = yield from fn(*args)
+				cache[key] = await fn(*args)
 			return cache[key]
 		return wrapper
 	return decorator
 
 
 @async_cache()
-def _request(method, url):
+async def _request(method, url):
 	app.logger.info('{}:{}'.format(method, url))
-	response = yield from aiohttp.request(method, url)
-	if response.status != 200:
-		abort(response.status)
-	else:
-		return response
+	async with aiohttp.request(method, url) as response:
+		if response.status != 200:
+			abort(response.status)
+		else:
+			# get response before closing the connection
+			await response.read()
+			return response
 
 
 @app.route('/{endpoint}/{path:.+}', methods=['GET', 'HEAD', 'OPTIONS'])
-@asyncio.coroutine
-def handle(request):
+async def handle(request):
 	endpoint = request.match_info['endpoint']
 
 	config = get_config(endpoint)
@@ -64,8 +64,8 @@ def handle(request):
 	if request.query_string:
 		url += '?' + request.query_string
 
-	remote = yield from _request(request.method, url)
-	body = yield from remote.read()
+	remote = await _request(request.method, url)
+	body = await remote.read()
 
 	if 'fields' in config and request.method == 'GET':
 		response = jsonify(scrape(url, body, config), status=remote.status)
