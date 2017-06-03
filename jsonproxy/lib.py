@@ -11,6 +11,10 @@ ENDPOINTS = 'ENDPOINTS'
 
 
 def get_attribute_list(html, selector):
+	optional = selector.endswith('?')
+	if optional:
+		selector = selector[:-1]
+
 	s = selector.rsplit('@', 1)[0]
 	if s:
 		elements = html.select(s)
@@ -19,14 +23,17 @@ def get_attribute_list(html, selector):
 
 	if '@' in selector:
 		attr = selector.rsplit('@', 1)[1]
-		return [element[attr] for element in elements]
+		if optional:
+			return [element.get(attr) for element in elements]
+		else:
+			return [element[attr] for element in elements]
 	else:
 		return [element.text.strip() for element in elements]
 
 
 def get_attribute(html, selector):
 	l = get_attribute_list(html, selector)
-	if len(l) > 0:
+	if len(l) > 0 or not selector.endswith('?'):
 		return l[0]
 
 
