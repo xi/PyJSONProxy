@@ -51,7 +51,7 @@ async def _request(method, url):
 			return response
 
 
-@app.route('/{endpoint}/{path:.+}', methods=['GET', 'HEAD', 'OPTIONS'])
+@app.route('/{endpoint}/{path:.+}')
 async def handle(request):
 	endpoint = request.match_info['endpoint']
 
@@ -67,10 +67,8 @@ async def handle(request):
 	remote = await _request(request.method, url)
 	body = await remote.read()
 
-	if 'fields' in config and request.method == 'GET':
+	if 'fields' in config:
 		response = jsonify(scrape(url, body, config), status=remote.status)
-	else:
-		response = make_response((body, remote.status, []))
 
 	if app.config.get('ALLOW_CORS', False):
 		response.headers['Access-Control-Allow-Origin'] = '*'
