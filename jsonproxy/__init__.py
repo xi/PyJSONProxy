@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -11,7 +12,6 @@ from fakes import abort
 from .lib import check_config
 from .lib import _doc
 from .lib import ENDPOINTS
-from .lib import parse_args
 from .lib import scrape
 
 app = Fakes(__name__)
@@ -89,6 +89,15 @@ def doc(request):
 	config = get_config(endpoint)
 	data = [_doc(config, endpoint)]
 	return app.render_template('index.html', endpoints=data)
+
+
+def parse_args():
+	parser = argparse.ArgumentParser(description='simple proxy and scraper')
+	parser.add_argument('config')
+	parser.add_argument('-d', '--debug', action='store_true')
+	parser.add_argument('-p', '--port', type=int, default=5000)
+	parser.add_argument('-H', '--host', default='localhost')
+	return parser.parse_args()
 
 
 def main():
