@@ -1,6 +1,16 @@
 Changes
 =======
 
+2.0.0 (2017-06-03)
+------------------
+
+- drop support for python3.4
+- handle HEAD and OPTIONS requests internally instead of forwarding it
+- allow to mark fields as optional by appending a '?' to the selector
+- allow simple formatting of host names
+- include template for documentation
+
+
 1.0.2 (2015-12-22)
 ------------------
 
