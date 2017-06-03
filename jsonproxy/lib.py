@@ -10,7 +10,7 @@ except ImportError:
 ENDPOINTS = 'ENDPOINTS'
 
 
-def get_attribute_list(html, selector):
+def iter_attribute(html, selector):
 	optional = selector.endswith('?')
 	if optional:
 		selector = selector[:-1]
@@ -24,17 +24,20 @@ def get_attribute_list(html, selector):
 	if '@' in selector:
 		attr = selector.rsplit('@', 1)[1]
 		if optional:
-			return [element.get(attr) for element in elements]
+			return (element.get(attr) for element in elements)
 		else:
-			return [element[attr] for element in elements]
+			return (element[attr] for element in elements)
 	else:
-		return [element.text.strip() for element in elements]
+		return (element.text.strip() for element in elements)
 
 
 def get_attribute(html, selector):
-	l = get_attribute_list(html, selector)
-	if len(l) > 0 or not selector.endswith('?'):
-		return l[0]
+	l = iter_attribute(html, selector)
+	try:
+		return next(l)
+	except StopIteration:
+		if not selector.endswith('?'):
+			raise
 
 
 def get_fields(html, config):
@@ -46,7 +49,7 @@ def get_fields(html, config):
 			elements = html.select(value['selector'])
 			data[key] = [get_fields(e, value) for e in elements]
 		else:
-			data[key] = get_attribute_list(html, value['selector'])
+			data[key] = list(iter_attribute(html, value['selector']))
 	return data
 
 
