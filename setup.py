@@ -8,11 +8,13 @@ DIRNAME = os.path.abspath(os.path.dirname(__file__))
 rel = lambda *parts: os.path.abspath(os.path.join(DIRNAME, *parts))
 
 README = open(rel('README.rst')).read()
+INIT = open(rel('jsonproxy/__init__.py')).read()
+VERSION = re.search("__version__ = '([^']+)'", INIT).group(1)
 
 
 setup(
     name='jsonproxy',
-    version='2.0.0',
+    version=VERSION,
     description='Generic proxy to allow access to non-jsonp APIs',
     long_description=README,
     url='https://github.com/xi/PyJSONProxy',

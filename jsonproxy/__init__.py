@@ -14,6 +14,8 @@ from .lib import _doc
 from .lib import ENDPOINTS
 from .lib import scrape
 
+__version__ = '2.0.0'
+
 app = Fakes(__name__)
 
 
@@ -94,6 +96,7 @@ def doc(request):
 def parse_args():
 	parser = argparse.ArgumentParser(description='simple proxy and scraper')
 	parser.add_argument('config')
+	parser.add_argument('--version', action='version', version=__version__)
 	parser.add_argument('-d', '--debug', action='store_true')
 	parser.add_argument('-p', '--port', type=int, default=5000)
 	parser.add_argument('-H', '--host', default='localhost')
