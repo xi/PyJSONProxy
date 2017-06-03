@@ -56,7 +56,11 @@ def handle(request):
 	endpoint = request.match_info['endpoint']
 
 	config = get_config(endpoint)
-	url = config['host'] + request.match_info['path']
+	if '{' in config['host']:
+		parts = request.match_info['path'].strip('/').split('/')
+		url = config['host'].format(*parts)
+	else:
+		url = config['host'] + request.match_info['path']
 	if request.query_string:
 		url += '?' + request.query_string
 
