@@ -23,7 +23,7 @@ setup(
     packages=['jsonproxy'],
     include_package_data=True,
     install_requires=[
-        'Fakes',
+        'aiohttp',
         'beautifulsoup4',
     ],
     entry_points={'console_scripts': [

@@ -1,13 +1,13 @@
+from functools import lru_cache
+from pkg_resources import resource_filename
 import argparse
+import asyncio
 import os
 import sys
 
+from aiohttp import web
 import aiohttp
-
-from fakes import Fakes
-from fakes import jsonify
-from fakes import make_response
-from fakes import abort
+import jinja2
 
 from .lib import check_config
 from .lib import _doc
@@ -16,14 +16,32 @@ from .lib import scrape
 
 __version__ = '2.0.0'
 
-app = Fakes(__name__)
+CONFIG = {}
 
 
 def get_config(endpoint):
 	try:
-		return app.config[ENDPOINTS][endpoint]
+		return CONFIG[ENDPOINTS][endpoint]
 	except KeyError:
-		abort(404)
+		raise aiohttp.web_exceptions.HTTPNotFound
+
+
+@lru_cache()
+def get_template(name):
+	local_path = os.path.join('templates', name)
+	path = resource_filename(__name__, local_path)
+	with open(path) as fh:
+		s = fh.read()
+		return jinja2.Template(s)
+
+
+def render_template(name, **kwargs):
+	"""Shortcut for rendering a jinja template to a response."""
+	template = get_template(name)
+	text = template.render(**kwargs)
+	return web.Response(
+		body=text.encode('utf8'),
+		content_type='text/html')
 
 
 def async_cache(maxsize=128):
@@ -43,17 +61,16 @@ def async_cache(maxsize=128):
 
 @async_cache()
 async def _request(method, url):
-	app.logger.info('{}:{}'.format(method, url))
+	print('{}:{}'.format(method, url))
 	async with aiohttp.request(method, url) as response:
-		if response.status != 200:
-			abort(response.status)
-		else:
-			# get response before closing the connection
-			await response.read()
-			return response
+		if response.status == 404:
+			raise aiohttp.web_exceptions.HTTPNotFound
+		response.raise_for_status()
+		# get response before closing the connection
+		await response.read()
+		return response
 
 
-@app.route('/{endpoint}/{path:.+}')
 async def handle(request):
 	endpoint = request.match_info['endpoint']
 
@@ -70,27 +87,26 @@ async def handle(request):
 	body = await remote.read()
 
 	if 'fields' in config:
-		response = jsonify(scrape(url, body, config), status=remote.status)
+		data = scrape(url, body, config)
+		response = web.json_response(data, status=remote.status)
 
-	if app.config.get('ALLOW_CORS', False):
+	if CONFIG.get('ALLOW_CORS', False):
 		response.headers['Access-Control-Allow-Origin'] = '*'
 
 	return response
 
 
-@app.route('/')
 def index(request):
-	config = app.config[ENDPOINTS]
+	config = CONFIG[ENDPOINTS]
 	data = [_doc(config[endpoint], endpoint) for endpoint in config]
-	return app.render_template('index.html', endpoints=data)
+	return render_template('index.html', endpoints=data)
 
 
-@app.route('/{endpoint}/')
 def doc(request):
 	endpoint = request.match_info['endpoint']
 	config = get_config(endpoint)
 	data = [_doc(config, endpoint)]
-	return app.render_template('index.html', endpoints=data)
+	return render_template('index.html', endpoints=data)
 
 
 def parse_args():
@@ -106,16 +122,40 @@ def parse_args():
 def main():
 	args = parse_args()
 
-	app.config_from_file(os.path.abspath(args.config))
-	app.debug = args.debug
+	config_path = os.path.abspath(args.config)
+	with open(config_path) as fh:
+		exec(compile(fh.read(), config_path, 'exec'), CONFIG)  # nosec
 
-	errors = check_config(app.config)
+	errors = check_config(CONFIG)
 	if errors:
 		for error in errors:
-			app.logger.error(error)
+			print(error)
 		sys.exit(1)
 
-	app.run(host=args.host, port=args.port)
+	loop = asyncio.get_event_loop()
+	app = web.Application(loop=loop)
+
+	app.router.add_route('GET', '/', index)
+	app.router.add_route('GET', '/{endpoint}/', doc)
+	app.router.add_route('GET', '/{endpoint}/{path:.+}', handle)
+
+	h = app.make_handler()
+	f = loop.create_server(h, args.host, args.port)
+	srv = loop.run_until_complete(f)
+	msg = "Running on http://{}:{}/ (Press CTRL+C to quit)"
+	print(msg.format(args.host, args.port))
+
+	try:
+		loop.run_forever()
+	except KeyboardInterrupt:
+		pass
+	finally:
+		loop.run_until_complete(h.finish_connections(1.0))
+		srv.close()
+		loop.run_until_complete(srv.wait_closed())
+		loop.run_until_complete(app.cleanup())
+
+	loop.close()
 
 
 if __name__ == '__main__':
