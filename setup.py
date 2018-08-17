@@ -25,6 +25,7 @@ setup(
     install_requires=[
         'aiohttp',
         'beautifulsoup4',
+        'jinja2',
     ],
     entry_points={'console_scripts': [
         'jsonproxy=jsonproxy:main',
