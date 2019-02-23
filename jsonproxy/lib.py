@@ -30,9 +30,9 @@ def iter_attribute(html, selector):
 
 
 def get_attribute(html, selector):
-	l = iter_attribute(html, selector)
+	iterator = iter_attribute(html, selector)
 	try:
-		return next(l)
+		return next(iterator)
 	except StopIteration:
 		if not selector.endswith('?'):
 			raise
@@ -90,8 +90,9 @@ def check_fields_config(fields, endpoint, field=''):
 		full_key = field + '.' + key if field else key
 		if isinstance(value, dict):
 			if 'selector' not in value:
-				yield ('No selector configured for field %s in endpoint %s.' %
-					(full_key, endpoint))
+				yield ('No selector configured for field %s in endpoint %s.' % (
+					full_key, endpoint
+				))
 			if 'fields' in value:
 				for error in check_fields_config(value['fields'], endpoint, full_key):
 					yield error
