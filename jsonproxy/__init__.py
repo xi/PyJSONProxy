@@ -137,23 +137,7 @@ def main():
 	app.router.add_route('GET', '/{endpoint}/', doc)
 	app.router.add_route('GET', '/{endpoint}/{path:.+}', handle)
 
-	h = app.make_handler()
-	f = loop.create_server(h, args.host, args.port)
-	srv = loop.run_until_complete(f)
-	msg = "Running on http://{}:{}/ (Press CTRL+C to quit)"
-	print(msg.format(args.host, args.port))
-
-	try:
-		loop.run_forever()
-	except KeyboardInterrupt:
-		pass
-	finally:
-		loop.run_until_complete(h.finish_connections(1.0))
-		srv.close()
-		loop.run_until_complete(srv.wait_closed())
-		loop.run_until_complete(app.cleanup())
-
-	loop.close()
+	web.run_app(app, host=args.host, port=args.port)
 
 
 if __name__ == '__main__':
