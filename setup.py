@@ -40,4 +40,5 @@ setup(
         'License :: OSI Approved :: GNU Affero General Public License v3 '
             'or later (AGPLv3+)',
         'Topic :: Internet :: Proxy Servers',
-    ])
+    ],
+)

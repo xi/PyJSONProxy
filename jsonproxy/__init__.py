@@ -61,7 +61,6 @@ def async_cache(maxsize=128):
 
 @async_cache()
 async def _request(method, url):
-	print('{}:{}'.format(method, url))
 	async with aiohttp.request(method, url) as response:
 		if response.status == 404:
 			raise aiohttp.web_exceptions.HTTPNotFound
