@@ -67,7 +67,7 @@ async def _request(method, url):
 		response.raise_for_status()
 		# get response before closing the connection
 		body = await response.read()
-		return body, response.status
+		return body, response
 
 
 async def handle(request):
@@ -82,11 +82,15 @@ async def handle(request):
 	if request.query_string:
 		url += '?' + request.query_string
 
-	body, status = await _request(request.method, url)
+	body, original = await _request(request.method, url)
 
 	if 'fields' in config:
 		data = scrape(url, body, config)
-		response = web.json_response(data, status=status)
+		response = web.json_response(data, status=original.status)
+	else:
+		response = web.Response(
+			body=body, status=original.status, content_type=original.content_type
+		)
 
 	if CONFIG.get('ALLOW_CORS', False):
 		response.headers['Access-Control-Allow-Origin'] = '*'
