@@ -14,7 +14,7 @@ from .lib import _doc
 from .lib import ENDPOINTS
 from .lib import scrape
 
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 CONFIG = {}
 

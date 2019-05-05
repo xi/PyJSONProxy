@@ -1,6 +1,14 @@
 Changes
 =======
 
+2.1.0 (2019-05-05)
+------------------
+
+- fix regression: non-scraping requests
+- use aiohttp directly instead of deprecated fakes
+- define __version__
+
+
 2.0.0 (2017-06-03)
 ------------------
 
